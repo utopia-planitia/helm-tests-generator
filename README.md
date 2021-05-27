@@ -1,4 +1,4 @@
-# Script to helm tests
+# Helm tests generator
 
 `scripts-to-helm-test` looks into the folder `test-scripts` and generates a test job for each file it finds into `templates`.
 
