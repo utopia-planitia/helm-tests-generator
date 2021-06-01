@@ -8,54 +8,54 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/urfave/cli"
 )
 
 //go:embed job.yaml.gtpl
 var yamlTemplate string
 
 func main() {
-	err := run()
+	err := run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-type TestDetails struct {
-	TestName string
-	Image    string
-	Command  []string
-}
+func run(args []string) error {
+	app := &cli.App{
+		Name:   "helm tests generator",
+		Usage:  "generate helm test jobs based on test scripts",
+		Action: render,
+	}
 
-func run() error {
-	testFiles, err := listTestfiles()
+	err := app.Run(os.Args)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func render(c *cli.Context) error {
+	testspath := "test-scripts"
+
+	if c.Args().Present() {
+		testspath = c.Args().First()
+	}
+
+	if len(c.Args().Tail()) != 0 {
+		return fmt.Errorf("please provide only one path")
+	}
+
 	tmpl, err := template.New("test").Parse(yamlTemplate)
+	if err != nil {
+		return err
+	}
 
-	tests := []TestDetails{}
-
-	for _, testFile := range testFiles {
-		extension := filepath.Ext(testFile)
-
-		image, err := image(extension)
-		if err != nil {
-			return err
-		}
-
-		command, err := command(filepath.Base(testFile))
-		if err != nil {
-			return err
-		}
-
-		testDetails := TestDetails{
-			TestName: strings.TrimSuffix(filepath.Base(testFile), extension),
-			Command:  command,
-			Image:    image,
-		}
-
-		tests = append(tests, testDetails)
+	tests, err := allTests(testspath)
+	if err != nil {
+		return err
 	}
 
 	err = tmpl.Execute(os.Stdout, tests)
@@ -66,46 +66,62 @@ func run() error {
 	return nil
 }
 
-func command(testFile string) ([]string, error) {
-	extension := filepath.Ext(testFile)
-	commands := make(map[string][]string)
+type Testcase interface {
+	Name() string
+	Image() string
+	Command() []string
+}
 
-	commands[".sh"] = []string{
+func allTests(testspath string) ([]Testcase, error) {
+	tests := []Testcase{}
+
+	shelltests, err := shellTests(testspath)
+	if err != nil {
+		return []Testcase{}, err
+	}
+
+	tests = append(tests, shelltests...)
+
+	return tests, nil
+}
+
+func shellTests(testspath string) ([]Testcase, error) {
+	files, err := filepath.Glob(filepath.Join(testspath, "*.sh"))
+	if err != nil {
+		return []Testcase{}, err
+	}
+
+	testcases := []Testcase{}
+
+	for _, file := range files {
+		testcase := SHTest{
+			basename: filepath.Base(file),
+		}
+		testcases = append(testcases, testcase)
+	}
+
+	return testcases, nil
+}
+
+type SHTest struct {
+	basename string
+}
+
+func (s SHTest) Name() string {
+	extension := filepath.Ext(s.basename)
+	name := strings.TrimSuffix(s.basename, extension)
+	return name
+}
+
+func (s SHTest) Image() string {
+	return "utopiaplanitia/helm-tools:v1.0.2"
+}
+
+func (s SHTest) Command() []string {
+	return []string{
 		"/bin/bash",
 		"-o=pipefail",
 		"-eu",
-		"/test/" + testFile,
+		"/test/" + s.basename,
 	}
-
-	command, ok := commands[extension]
-	if !ok {
-		return []string{}, fmt.Errorf("no command is defined for %s scripts", extension)
-	}
-
-	return command, nil
-}
-
-func image(extension string) (string, error) {
-	images := make(map[string]string)
-
-	// TODO update via renovate bot
-	images[".sh"] = "utopiaplanitia/helm-tools:v1.0.2"
-
-	image, ok := images[extension]
-	if !ok {
-		return "", fmt.Errorf("no image is defined for %s scripts", extension)
-	}
-
-	return image, nil
-}
-
-func listTestfiles() ([]string, error) {
-	files := []string{}
-
-	files, err := filepath.Glob(filepath.Join("test-scripts", "*.sh"))
-	if err != nil {
-		return []string{}, err
-	}
-
-	return files, nil
 }

@@ -3,15 +3,15 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{`{{ .Release.Name }}`}}-{{ .TestName }}-test"
+  name: "utopiatests-{{ $test.Name }}-test"
   annotations:
     helm.sh/hook: test-success
 spec:
   containers:
     - name: test
-      image: {{ .Image }}
+      image: {{ $test.Image }}
       command:
-{{- range $line := .Command }}
+{{- range $line := $test.Command }}
         - {{ . }}
 {{- end }}
     volumeMounts:
@@ -21,13 +21,13 @@ spec:
   volumes:
   - name: test-scripts
     secret:
-      secretName: "{{`{{ .Release.Name }}`}}-test-scripts"
+      secretName: "utopiatests-test-scripts"
 {{ end -}}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: "{{`{{ .Release.Name }}`}}-test-scripts"
+  name: "utopiatests-test-scripts"
 type: Opaque
 stringData:
 {{`{{`}} (tpl (.Files.Glob "test-scripts/*").AsConfig . ) | indent 2 {{`}}`}}

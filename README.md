@@ -1,5 +1,5 @@
 # Helm tests generator
 
-`scripts-to-helm-test` looks into the folder `test-scripts` and generates a test job for each file it finds into `templates`.
+`helm-test-generator` looks into a folder (`test-scripts` by default) and generates a test job for each file it finds.
 
-For each test a secret is created to pass the script into the test job.
+The job manifests and a secret containing the tests-scripts folder is written to stdout.
