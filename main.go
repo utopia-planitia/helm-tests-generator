@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 //go:embed job.yaml.gtpl
@@ -82,6 +82,13 @@ func allTests(testspath string) ([]Testcase, error) {
 
 	tests = append(tests, shelltests...)
 
+	batstests, err := batsTests(testspath)
+	if err != nil {
+		return []Testcase{}, err
+	}
+
+	tests = append(tests, batstests...)
+
 	return tests, nil
 }
 
@@ -103,6 +110,24 @@ func shellTests(testspath string) ([]Testcase, error) {
 	return testcases, nil
 }
 
+func batsTests(testspath string) ([]Testcase, error) {
+	files, err := filepath.Glob(filepath.Join(testspath, "*.bats"))
+	if err != nil {
+		return []Testcase{}, err
+	}
+
+	testcases := []Testcase{}
+
+	for _, file := range files {
+		testcase := BatsTest{
+			basename: filepath.Base(file),
+		}
+		testcases = append(testcases, testcase)
+	}
+
+	return testcases, nil
+}
+
 type SHTest struct {
 	basename string
 }
@@ -110,18 +135,37 @@ type SHTest struct {
 func (s SHTest) Name() string {
 	extension := filepath.Ext(s.basename)
 	name := strings.TrimSuffix(s.basename, extension)
-	return name
+	return name + "-" + strings.ReplaceAll(extension, ".", "")
 }
 
 func (s SHTest) Image() string {
-	return "utopiaplanitia/helm-tools:v1.0.2"
+	return "utopiaplanitia/helm-tests:latest"
 }
 
 func (s SHTest) Command() []string {
 	return []string{
-		"/bin/bash",
-		"-o=pipefail",
-		"-eu",
-		"/test/" + s.basename,
+		"bash",
+		s.basename,
+	}
+}
+
+type BatsTest struct {
+	basename string
+}
+
+func (s BatsTest) Name() string {
+	extension := filepath.Ext(s.basename)
+	name := strings.TrimSuffix(s.basename, extension)
+	return name + "-" + strings.ReplaceAll(extension, ".", "")
+}
+
+func (s BatsTest) Image() string {
+	return "utopiaplanitia/helm-tests:latest"
+}
+
+func (s BatsTest) Command() []string {
+	return []string{
+		"bats",
+		s.basename,
 	}
 }

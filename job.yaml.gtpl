@@ -14,14 +14,15 @@ spec:
 {{- range $line := $test.Command }}
         - {{ . }}
 {{- end }}
-    volumeMounts:
-    - name: test-scripts
-      mountPath: "/tests"
-      readOnly: true
+      volumeMounts:
+        - name: test-scripts
+          mountPath: "/tests"
+          readOnly: true
   volumes:
-  - name: test-scripts
-    secret:
-      secretName: "utopiatests-test-scripts"
+    - name: test-scripts
+      secret:
+        secretName: "utopiatests-test-scripts"
+  restartPolicy: Never
 {{ end -}}
 ---
 apiVersion: v1
