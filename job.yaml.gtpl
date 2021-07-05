@@ -15,6 +15,13 @@ spec:
 {{- range $line := $test.Command }}
         - {{ . }}
 {{- end }}
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
       volumeMounts:
         - name: test-scripts
           mountPath: "/tests"

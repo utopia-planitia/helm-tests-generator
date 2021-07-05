@@ -13,6 +13,13 @@ spec:
       command:
         - bash
         - check.sh
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
       volumeMounts:
         - name: test-scripts
           mountPath: "/tests"
@@ -37,6 +44,13 @@ spec:
       command:
         - bash
         - true.sh
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
       volumeMounts:
         - name: test-scripts
           mountPath: "/tests"
@@ -61,6 +75,13 @@ spec:
       command:
         - bats
         - true.bats
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
       volumeMounts:
         - name: test-scripts
           mountPath: "/tests"
@@ -85,7 +106,7 @@ metadata:
   name: testing-account
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: testing-cluster-admin
 roleRef:
@@ -95,3 +116,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: testing-account
+  namespace: {{ .Release.Namespace }}
