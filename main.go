@@ -139,7 +139,7 @@ func (s SHTest) Name() string {
 }
 
 func (s SHTest) Image() string {
-	return "utopiaplanitia/helm-tests:latest"
+	return "ghcr.io/utopia-planitia/helm-tests-image:latest"
 }
 
 func (s SHTest) Command() []string {
@@ -160,7 +160,7 @@ func (s BatsTest) Name() string {
 }
 
 func (s BatsTest) Image() string {
-	return "utopiaplanitia/helm-tests:latest"
+	return "ghcr.io/utopia-planitia/helm-tests-image:latest"
 }
 
 func (s BatsTest) Command() []string {

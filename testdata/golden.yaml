@@ -9,7 +9,7 @@ spec:
   serviceAccountName: testing-account
   containers:
     - name: test
-      image: utopiaplanitia/helm-tests:latest
+      image: ghcr.io/utopia-planitia/helm-tests-image:latest
       command:
         - bash
         - check.sh
@@ -40,7 +40,7 @@ spec:
   serviceAccountName: testing-account
   containers:
     - name: test
-      image: utopiaplanitia/helm-tests:latest
+      image: ghcr.io/utopia-planitia/helm-tests-image:latest
       command:
         - bash
         - true.sh
@@ -71,7 +71,7 @@ spec:
   serviceAccountName: testing-account
   containers:
     - name: test
-      image: utopiaplanitia/helm-tests:latest
+      image: ghcr.io/utopia-planitia/helm-tests-image:latest
       command:
         - bats
         - true.bats
