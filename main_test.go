@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 )
@@ -23,7 +23,7 @@ func Test_main(t *testing.T) {
 	main()
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 
 	os.Stdout = rescueStdout
 	os.Args = rescueArgs
